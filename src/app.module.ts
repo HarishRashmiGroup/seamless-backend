@@ -3,7 +3,7 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 import mikroOrmConfig from './mikro-orm.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './Users/user.module';
+import { UserModule } from './users/user.module';
 import { JwtMiddleware } from './common/jwtMiddleware';
 
 @Module({
