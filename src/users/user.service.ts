@@ -2,16 +2,15 @@ import { InjectRepository } from "@mikro-orm/nestjs";
 import { HttpCode, Injectable } from "@nestjs/common";
 import { User, UserRole } from "./entities/user.entity";
 import { EntityManager, EntityRepository } from "@mikro-orm/postgresql";
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from "bcrypt";
 import { JwtService } from '@nestjs/jwt';
 
-const saltRounds = 10;
 @Injectable()
 export class UserService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: EntityRepository<User>,
-        
+
         private readonly jwtService: JwtService,
 
         private readonly em: EntityManager,
@@ -26,7 +25,10 @@ export class UserService {
     }
 
     async newUser({ userName, passkey, role }: { userName: string, passkey: string, role: UserRole }) {
-        const hashedPassword = await bcrypt.hash(passkey, saltRounds);
+        const saltRounds = 10;
+        const salt = await bcrypt.genSalt(saltRounds);
+        console.log(passkey)
+        const hashedPassword = await bcrypt.hash(passkey, salt);
         const user = new User({ userName, passkey: hashedPassword, role: role === UserRole.admin ? UserRole.operator : role });
         await this.em.persistAndFlush(user);
         return (

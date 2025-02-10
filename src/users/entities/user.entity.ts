@@ -19,6 +19,9 @@ export class User {
     @Property()
     passkey: string;
 
+    @Property({ type: 'array', default: [] })
+    department: string[] = []
+
     @Enum(() => UserRole)
     role: UserRole;
 

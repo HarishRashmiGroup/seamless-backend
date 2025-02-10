@@ -13,7 +13,7 @@ const config = defineConfig({
   entitiesTs: ['src/**/*.entity.ts'],
   driver: PostgreSqlDriver,
   loadStrategy: LoadStrategy.JOINED,
-  clientUrl: process.env.DB_URI,
+  clientUrl: 'postgresql://postgres:5635@localhost:5432/seamless' as string,
   highlighter: new SqlHighlighter(),
   debug: true,
   logger: logger.log.bind(logger),
