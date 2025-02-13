@@ -13,7 +13,9 @@ const config = defineConfig({
   entitiesTs: ['src/**/*.entity.ts'],
   driver: PostgreSqlDriver,
   loadStrategy: LoadStrategy.JOINED,
-  clientUrl: process.env.DB_URI,
+  // schema: 'seamless',
+  // clientUrl: process.env.DB_URI,
+  clientUrl: 'postgresql://postgres:5635@localhost:5432/seamless' as string,
   highlighter: new SqlHighlighter(),
   debug: true,
   logger: logger.log.bind(logger),
@@ -24,12 +26,15 @@ const config = defineConfig({
     path: './migrations',
     glob: '!(*.d).{js,ts}',
     transactional: true,
-    disableForeignKeys: true,
+    disableForeignKeys: false,
     allOrNothing: true,
     dropTables: false,
     safe: true,
     emit: 'ts',
   },
+  // driverOptions: {
+  //   connection: { ssl: { rejectUnauthorized: false } },
+  // },
   extensions: [Migrator],
   findOneOrFailHandler: (entityName) => {
     throw new NotFoundException(`${entityName} not found`);

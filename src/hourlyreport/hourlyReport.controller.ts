@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { GetHourlyReportDto, HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
 import { HourlyReportService } from "./hourlyReport.service";
 
@@ -11,6 +11,11 @@ export class HourlyReportController {
     @Post('prod')
     recordHourlyData(@Body() dto: HourlyReportDto) {
         return this.hourlyReportService.recordHourlyData(dto);
+    }
+
+    @Post('prod/:id')
+    updateHourlyData(@Param('id') id: number, @Body() dto: HourlyReportDto) {
+        return this.hourlyReportService.updateHourlyData(id, dto);
     }
 
     @Post('breakdown')

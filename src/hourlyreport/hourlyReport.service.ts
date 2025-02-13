@@ -1,7 +1,7 @@
 import { InjectRepository } from "@mikro-orm/nestjs";
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { HourlyEntry } from "./entities/hourlyEntry.entity";
-import { EntityManager, EntityRepository } from "@mikro-orm/postgresql";
+import { EntityManager, EntityRepository, wrap } from "@mikro-orm/postgresql";
 import { BreakDown } from "./entities/breakDown.entity";
 import { HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
 import { Machine } from "src/basic/entities/machine.entity";
@@ -32,7 +32,6 @@ export class HourlyReportService {
         private readonly em: EntityManager,
     ) { }
     async recordHourlyData(dto: HourlyReportDto) {
-        console.log(dto);
         const [machine, shift] = await Promise.all([
             this.machineRepository.findOneOrFail({ id: dto.machineId }),
             this.shiftRepository.findOneOrFail({ id: dto.shiftId })
@@ -68,22 +67,102 @@ export class HourlyReportService {
         await this.em.flush();
         return {
             formData: new ProductionDataRO(newEntry),
+            message: `Production Data recorded for shift ${shift.shift} ${shift.interval}`,
+            status: 200 as const
+        }
+    }
+
+    async updateHourlyData(id: number, dto: HourlyReportDto) {
+        const [machine, shift, entry] = await Promise.all([
+            this.machineRepository.findOneOrFail({ id: dto.machineId }),
+            this.shiftRepository.findOneOrFail({ id: dto.shiftId }),
+            this.hourlyEntryRepository.findOneOrFail({ id: id }, { populate: ['breakdowns'] })
+        ])
+        if (entry.machine.id != dto.machineId) {
+            throw new BadRequestException('Machine details can not be modified for a submitted data. Please refresh the page and try again.')
+        }
+        if (entry.shift.id != dto.shiftId) {
+            throw new BadRequestException('Shift details can not be modified for a submitted data. Please refresh the page and try again.')
+        }
+        wrap(entry).assign({
+            operatorName: dto.operatorName,
+            operatorPhoneNo: dto.operatorPhoneNo,
+            shiftIncharge: dto.shiftIncharge,
+            shiftInchargePhoneNo: dto.shiftInchargePhoneNo,
+            shiftSuperVisor: dto.shiftSuperVisor,
+            shiftSuperVisorPhoneNo: dto.shiftSuperVisorPhoneNo,
+            diaDetails: dto.diaDetails,
+            actProdPerHr: dto.actProdPerHr,
+            stdProdPerHr: dto.stdProdPerHr,
+        });
+
+        console.log(dto.breakdownDetails)
+        dto.breakdownDetails.filter((bd) => bd.id == 0).map((bd) => {
+            const newbd = new BreakDown({
+                startTime: bd.startTime,
+                endTime: bd.endTime,
+                hourlyEntry: entry,
+                departement: this.em.getReference(Department, bd.departmentId),
+                type: this.em.getReference(BDType, bd.typeId),
+                reason: bd.reason
+            });
+            this.em.persist(newbd);
+        });
+        await this.em.flush();
+        return {
+            formData: new ProductionDataRO(entry),
             message: `Production Data updated for shift ${shift.shift} ${shift.interval}`,
             status: 200 as const
         }
     }
 
     async getProductionData(shiftId: number, date: string, machineId: number) {
-        console.log(shiftId, date, machineId);
-        const entry = await this.hourlyEntryRepository.findOneOrFail(
+        const entry = await this.hourlyEntryRepository.findOne(
             { machine: { id: machineId }, dateString: date, shift: { id: shiftId } },
             { populate: ['breakdowns', 'shift'] }
         );
-        return new ProductionDataRO(entry);
+        if (entry)
+            return new ProductionDataRO(entry);
+        return ({
+            id: null,
+            operatorName: "",
+            operatorPhoneNo: "",
+            shiftIncharge: "",
+            shiftInchargePhoneNo: "",
+            shiftSuperVisor: "",
+            shiftSuperVisorPhoneNo: "",
+            diaDetails:
+                [{
+                    "length": null,
+                    "diameter": null,
+                    "thickness": null
+                }],
+            breakdownDetails: [],
+            status: true,
+            actProdPerHr: null,
+            stdProdPerHr: null,
+            runningMints: null
+        })
     }
 
     async recordBreakdownDetails(dto: RecordBreakdownDto) {
+        const breakDown = await this.breakDownRepository.findOneOrFail({ id: dto.id });
+        const tdc = dto.date && !isNaN(new Date(dto.date).getTime()) ? new Date(dto.date) : null;
         console.log(dto);
+        wrap(breakDown).assign({
+            reason: dto.reason,
+            tempSolution: dto.tempSolution,
+            permanentSolution: dto.permanentSolution,
+            actionPlan: dto.actionPlan,
+            tdc,
+            tdcString: dto.date,
+            nameOfEquipment: dto.nameOfEquipment,
+            purchaseIssue: dto.purchaseIssue,
+            departement: this.em.getReference(Department, dto.departmentId),
+            type: this.em.getReference(BDType, dto.typeId),
+            rootCause: !isNaN(dto.rootCauseId) ? this.em.getReference(RootCause, dto.rootCauseId) : null
+        });
+        await this.em.flush();
         return {
             message: `B.D ${dto.reason.slice(0, 15)}... resolved.`,
             status: 200 as const

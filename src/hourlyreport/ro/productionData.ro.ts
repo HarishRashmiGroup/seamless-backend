@@ -2,20 +2,23 @@ import { DiaDetails } from "../dto/diaDetails.dto";
 import { BreakDown } from "../entities/breakDown.entity";
 import { HourlyEntry } from "../entities/hourlyEntry.entity";
 import { DiaDetailsRO } from "./diaDetails.ro";
+import { orderBy } from 'lodash';
 
 export class BreadkDownDetailsRO {
+    id: number;
     startTime: string;
     endTime: string;
     reason: string;
-    permanentSolution: string;
-    tempSolution: string;
-    actionPlan: string;
-    purchaseIssue: string;
-    tdc: string;
-    nameOfEquipment: string;
+    permanentSolution: string | null;
+    tempSolution: string | null;
+    actionPlan: string | null;
+    purchaseIssue: string | null;
+    tdc: Date | null;
+    date: string | null;
+    nameOfEquipment: string | null;
     typeId: number;
     departmentId: number;
-    rootCauseId: number;
+    rootCauseId: number | null;
     duration: string;
     constructor(bd: BreakDown) {
         if (!bd.startTime || !bd.endTime) {
@@ -30,6 +33,7 @@ export class BreadkDownDetailsRO {
         }
 
         const duration = Math.round((end.getTime() - start.getTime()) / 60000);
+        this.id = bd.id;
         this.startTime = bd.startTime;
         this.endTime = bd.endTime;
         this.reason = bd.reason;
@@ -37,11 +41,13 @@ export class BreadkDownDetailsRO {
         this.tempSolution = bd.tempSolution;
         this.actionPlan = bd.actionPlan;
         this.purchaseIssue = bd.purchaseIssue;
-        this.tdc = bd.tdcString;
+        this.tdc = bd.tdc;
+        this.date = bd.tdcString;
         this.typeId = bd.type?.id;
-        this.departmentId = bd.departement?.id;
-        this.rootCauseId = bd.rootCause?.id;
+        this.departmentId = bd.departement?.id ?? null;
+        this.rootCauseId = bd.rootCause?.id ?? null;
         this.duration = String(duration);
+        this.nameOfEquipment = bd.nameOfEquipment;
     }
 }
 
@@ -72,14 +78,14 @@ export class ProductionDataRO {
         this.shiftSuperVisorPhoneNo = entry.shiftSuperVisorPhoneNo;
         this.diaDetails = entry.diaDetails;
         this.machineId = entry.machine.id;
-        this.breakdownDetails = entry.breakdowns.getItems().map((bd) => new BreadkDownDetailsRO(bd));
+        this.breakdownDetails = orderBy(entry.breakdowns.getItems(), ['createdAt'], ['asc']).map((bd: BreakDown) => new BreadkDownDetailsRO(bd));
         this.status = true;
         this.shiftLetter = entry.shift.shift;
         this.actProdPerHr = entry.actProdPerHr;
         this.stdProdPerHr = entry.stdProdPerHr;
         this.runningMints = 60 - this.breakdownDetails
-        .map((bd) => Number(bd.duration))
-        .reduce((sum, duration) => sum + duration, 0);
+            .map((bd) => Number(bd.duration))
+            .reduce((sum, duration) => sum + duration, 0);
     }
 
 }

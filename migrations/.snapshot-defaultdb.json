@@ -1,8 +1,8 @@
 {
   "namespaces": [
-    "public"
+    "seamless"
   ],
-  "name": "public",
+  "name": "seamless",
   "tables": [
     {
       "columns": {
@@ -27,7 +27,7 @@
         }
       },
       "name": "bdtype",
-      "schema": "public",
+      "schema": "seamless",
       "indexes": [
         {
           "keyName": "bdtype_pkey",
@@ -67,7 +67,7 @@
         }
       },
       "name": "department",
-      "schema": "public",
+      "schema": "seamless",
       "indexes": [
         {
           "keyName": "department_pkey",
@@ -107,7 +107,7 @@
         }
       },
       "name": "machine",
-      "schema": "public",
+      "schema": "seamless",
       "indexes": [
         {
           "keyName": "machine_pkey",
@@ -147,7 +147,7 @@
         }
       },
       "name": "root_cause",
-      "schema": "public",
+      "schema": "seamless",
       "indexes": [
         {
           "keyName": "root_cause_pkey",
@@ -201,7 +201,7 @@
         }
       },
       "name": "shift",
-      "schema": "public",
+      "schema": "seamless",
       "indexes": [
         {
           "keyName": "shift_pkey",
@@ -380,7 +380,7 @@
         }
       },
       "name": "hourly_entry",
-      "schema": "public",
+      "schema": "seamless",
       "indexes": [
         {
           "keyName": "hourly_entry_pkey",
@@ -400,11 +400,11 @@
           "columnNames": [
             "machine_id"
           ],
-          "localTableName": "public.hourly_entry",
+          "localTableName": "seamless.hourly_entry",
           "referencedColumnNames": [
             "id"
           ],
-          "referencedTableName": "public.machine",
+          "referencedTableName": "seamless.machine",
           "updateRule": "cascade"
         },
         "hourly_entry_shift_id_foreign": {
@@ -412,11 +412,11 @@
           "columnNames": [
             "shift_id"
           ],
-          "localTableName": "public.hourly_entry",
+          "localTableName": "seamless.hourly_entry",
           "referencedColumnNames": [
             "id"
           ],
-          "referencedTableName": "public.shift",
+          "referencedTableName": "seamless.shift",
           "updateRule": "cascade"
         }
       },
@@ -604,7 +604,7 @@
         }
       },
       "name": "break_down",
-      "schema": "public",
+      "schema": "seamless",
       "indexes": [
         {
           "keyName": "break_down_pkey",
@@ -624,11 +624,11 @@
           "columnNames": [
             "departement_id"
           ],
-          "localTableName": "public.break_down",
+          "localTableName": "seamless.break_down",
           "referencedColumnNames": [
             "id"
           ],
-          "referencedTableName": "public.department",
+          "referencedTableName": "seamless.department",
           "updateRule": "cascade"
         },
         "break_down_root_cause_id_foreign": {
@@ -636,11 +636,11 @@
           "columnNames": [
             "root_cause_id"
           ],
-          "localTableName": "public.break_down",
+          "localTableName": "seamless.break_down",
           "referencedColumnNames": [
             "id"
           ],
-          "referencedTableName": "public.root_cause",
+          "referencedTableName": "seamless.root_cause",
           "deleteRule": "set null",
           "updateRule": "cascade"
         },
@@ -649,11 +649,11 @@
           "columnNames": [
             "hourly_entry_id"
           ],
-          "localTableName": "public.break_down",
+          "localTableName": "seamless.break_down",
           "referencedColumnNames": [
             "id"
           ],
-          "referencedTableName": "public.hourly_entry",
+          "referencedTableName": "seamless.hourly_entry",
           "updateRule": "cascade"
         },
         "break_down_type_id_foreign": {
@@ -661,11 +661,11 @@
           "columnNames": [
             "type_id"
           ],
-          "localTableName": "public.break_down",
+          "localTableName": "seamless.break_down",
           "referencedColumnNames": [
             "id"
           ],
-          "referencedTableName": "public.bdtype",
+          "referencedTableName": "seamless.bdtype",
           "updateRule": "cascade"
         }
       },
@@ -750,7 +750,7 @@
         }
       },
       "name": "user",
-      "schema": "public",
+      "schema": "seamless",
       "indexes": [
         {
           "columnNames": [

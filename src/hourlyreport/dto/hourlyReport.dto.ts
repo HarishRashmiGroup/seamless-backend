@@ -1,13 +1,18 @@
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsNumber, IsObject, IsString, ValidateNested } from "class-validator"
+import { IsArray, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from "class-validator"
 import { DiaDetails } from "./diaDetails.dto";
 
 
 export class BreakdownDetails {
+    @IsOptional()
+    @Transform(({ value }) => Number(value))
+    @IsNumber()
+    id: number;
+
     @IsString()
     startTime: string;
 
-    @Transform(({value}) => (Number(value)))
+    @Transform(({ value }) => (Number(value)))
     @IsNumber()
     duration: number;
 
@@ -76,16 +81,22 @@ export class HourlyReportDto {
 }
 
 export class RecordBreakdownDto {
+    @IsNumber()
+    id: number;
+
     @IsString()
     reason: string;
 
-    @Transform(({ value }) => { Number(value) })
+    @Transform(({ value }) => Number(value))
+    @IsNumber()
     typeId: number;
 
-    @Transform(({ value }) => { Number(value) })
+    @Transform(({ value }) => Number(value))
+    @IsNumber()
     departmentId: number;
 
-    @Transform(({ value }) => { Number(value) })
+    @Transform(({ value }) => Number(value))
+    @IsNumber()
     rootCauseId: number;
 
     @IsString()
@@ -102,6 +113,9 @@ export class RecordBreakdownDto {
 
     @IsString()
     date: string;
+
+    @IsString()
+    nameOfEquipment: string;
 }
 
 export class GetHourlyReportDto {
