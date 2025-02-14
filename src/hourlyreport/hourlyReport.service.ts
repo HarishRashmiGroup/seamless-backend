@@ -166,7 +166,8 @@ export class HourlyReportService {
             date: new Date(dto.date)
         },
             {
-                populate: ['shift', 'breakdowns']
+                populate: ['shift', 'breakdowns'],
+                orderBy: { shift: 'ASC' }
             }
         );
         if (entries.length) {
