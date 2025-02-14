@@ -3,13 +3,13 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { HourlyEntry } from "./entities/hourlyEntry.entity";
 import { EntityManager, EntityRepository, wrap } from "@mikro-orm/postgresql";
 import { BreakDown } from "./entities/breakDown.entity";
-import { HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
+import { GetShiftReportDto, HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
 import { Machine } from "src/basic/entities/machine.entity";
 import { RootCause } from "src/basic/entities/rootCause.entity";
 import { Shift } from "src/basic/entities/shift.entity";
 import { Department } from "src/basic/entities/department.entity";
 import { BDType } from "src/basic/entities/bdtype.enity";
-import { ProductionDataRO } from "./ro/productionData.ro";
+import { ProductionDataRO, ShiftReportRowRO } from "./ro/productionData.ro";
 
 @Injectable()
 export class HourlyReportService {
@@ -117,20 +117,34 @@ export class HourlyReportService {
     }
 
     async getProductionData(shiftId: number, date: string, machineId: number) {
-        const entry = await this.hourlyEntryRepository.findOne(
-            { machine: { id: machineId }, dateString: date, shift: { id: shiftId } },
-            { populate: ['breakdowns', 'shift'] }
-        );
+        const [entry, shift] = await Promise.all([
+            this.hourlyEntryRepository.findOne(
+                { machine: { id: machineId }, dateString: date, shift: { id: shiftId } },
+                { populate: ['breakdowns', 'shift'] }
+            ),
+            this.shiftRepository.findOneOrFail(
+                {
+                    id: shiftId
+                }
+            )
+        ]);
         if (entry)
             return new ProductionDataRO(entry);
+        const basicDetails = await this.hourlyEntryRepository.findOne(
+            {
+                machine: machineId,
+                shift: { shift: shift.shift },
+                dateString: date,
+            },
+        );
         return ({
             id: null,
-            operatorName: "",
-            operatorPhoneNo: "",
-            shiftIncharge: "",
-            shiftInchargePhoneNo: "",
-            shiftSuperVisor: "",
-            shiftSuperVisorPhoneNo: "",
+            operatorName: basicDetails?.operatorName || "",
+            operatorPhoneNo: basicDetails?.operatorPhoneNo || "",
+            shiftIncharge: basicDetails?.shiftIncharge || "",
+            shiftInchargePhoneNo: basicDetails?.shiftInchargePhoneNo || "",
+            shiftSuperVisor: basicDetails?.shiftSuperVisor || "",
+            shiftSuperVisorPhoneNo: basicDetails?.shiftInchargePhoneNo || "",
             diaDetails:
                 [{
                     "length": null,
@@ -142,6 +156,31 @@ export class HourlyReportService {
             actProdPerHr: null,
             stdProdPerHr: null,
             runningMints: null
+        })
+    }
+
+    async getShiftData(dto: GetShiftReportDto) {
+        const entries = await this.hourlyEntryRepository.find({
+            machine: dto.machineId,
+            shift: { shift: dto.shift },
+            date: new Date(dto.date)
+        },
+            {
+                populate: ['shift', 'breakdowns']
+            }
+        );
+        if (entries.length) {
+            const list = entries.map((entry) => new ShiftReportRowRO(entry));
+            return ({
+                message: 'Shift Report found.',
+                list,
+                status: 200 as const
+            });
+        }
+        return ({
+            message: 'No entries found.',
+            list: [],
+            status: 200 as const
         })
     }
 

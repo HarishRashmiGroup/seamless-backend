@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
-import { GetHourlyReportDto, HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
+import { GetHourlyReportDto, GetShiftReportDto, HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
 import { HourlyReportService } from "./hourlyReport.service";
 
 @Controller('hourly')
@@ -26,5 +26,10 @@ export class HourlyReportController {
     @Get('/prod')
     getHourlyRecord(@Query() dto: GetHourlyReportDto) {
         return this.hourlyReportService.getProductionData(dto.shiftId, dto.date, dto.machineId);
+    }
+
+    @Get('/shift')
+    getShiftReport(@Query() dto: GetShiftReportDto) {
+        return this.hourlyReportService.getShiftData(dto);
     }
 }

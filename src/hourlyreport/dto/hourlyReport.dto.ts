@@ -1,6 +1,7 @@
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from "class-validator"
+import { IsArray, IsEnum, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from "class-validator"
 import { DiaDetails } from "./diaDetails.dto";
+import { ShiftEnum } from "src/basic/entities/shift.entity";
 
 
 export class BreakdownDetails {
@@ -125,6 +126,18 @@ export class GetHourlyReportDto {
     @Transform(({ value }) => Number(value))
     @IsNumber()
     shiftId: number;
+
+    @Transform(({ value }) => Number(value))
+    @IsNumber()
+    machineId: number;
+}
+
+export class GetShiftReportDto {
+    @IsString()
+    date: string;
+
+    @IsEnum(ShiftEnum)
+    shift: ShiftEnum;
 
     @Transform(({ value }) => Number(value))
     @IsNumber()

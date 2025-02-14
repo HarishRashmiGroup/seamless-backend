@@ -1,7 +1,9 @@
+import { interval } from "rxjs";
 import { DiaDetails } from "../dto/diaDetails.dto";
 import { BreakDown } from "../entities/breakDown.entity";
 import { HourlyEntry } from "../entities/hourlyEntry.entity";
 import { DiaDetailsRO } from "./diaDetails.ro";
+import _ from 'lodash';
 import { orderBy } from 'lodash';
 
 export class BreadkDownDetailsRO {
@@ -19,7 +21,7 @@ export class BreadkDownDetailsRO {
     typeId: number;
     departmentId: number;
     rootCauseId: number | null;
-    duration: string;
+    duration: number;
     constructor(bd: BreakDown) {
         if (!bd.startTime || !bd.endTime) {
             throw new Error("Invalid startTime or endTime");
@@ -46,7 +48,7 @@ export class BreadkDownDetailsRO {
         this.typeId = bd.type?.id;
         this.departmentId = bd.departement?.id ?? null;
         this.rootCauseId = bd.rootCause?.id ?? null;
-        this.duration = String(duration);
+        this.duration = duration;
         this.nameOfEquipment = bd.nameOfEquipment;
     }
 }
@@ -87,5 +89,35 @@ export class ProductionDataRO {
             .map((bd) => Number(bd.duration))
             .reduce((sum, duration) => sum + duration, 0);
     }
+}
 
+export class ShiftReportRowRO {
+    operatorName: string;
+    operatorPhoneNo: string;
+    shiftInchargePhoneNo: string;
+    shiftIncharge: string;
+    shiftSuperVisor: string;
+    shiftSuperVisorPhoneNo: string;
+    interval: string;
+    diaDetails: DiaDetailsRO[];
+    stdProdPerHr: number;
+    actProdPerHr: number;
+    difference: number;
+    runningMints: number;
+    breakdowns: BreadkDownDetailsRO[];
+    constructor(entry: HourlyEntry) {
+        this.operatorName = entry.operatorName;
+        this.operatorPhoneNo = entry.operatorPhoneNo;
+        this.shiftIncharge = entry.shiftIncharge;
+        this.shiftInchargePhoneNo = entry.shiftInchargePhoneNo;
+        this.shiftSuperVisorPhoneNo = entry.shiftSuperVisorPhoneNo;
+        this.diaDetails = entry.diaDetails;
+        this.interval = entry.shift.interval;
+        this.shiftSuperVisor = entry.shiftSuperVisor;
+        this.stdProdPerHr = entry.stdProdPerHr;
+        this.breakdowns = entry.breakdowns.getItems().map((bd) => new BreadkDownDetailsRO(bd))
+        this.actProdPerHr = entry.actProdPerHr;
+        this.difference = entry.stdProdPerHr - entry.actProdPerHr;
+        this.runningMints = 60 - 0;
+    }
 }
