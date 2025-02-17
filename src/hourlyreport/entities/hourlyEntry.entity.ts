@@ -51,10 +51,10 @@ export class HourlyEntry {
     @Property({ columnType: 'decimal(5,2)' })
     actProdPerHr: number;
 
-    @Property({ columnType: 'decimal(5,2)' })
+    @Property({ columnType: 'decimal(5,2)', nullable: true, default: 10.00})
     stdProdMTPerHr: number;
 
-    @Property({ columnType: 'decimal(5,2)' })
+    @Property({ columnType: 'decimal(5,2)', nullable: true, default: 10.00 })
     actProdMTPerHr: number;
 
     @Property()

@@ -364,9 +364,10 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "precision": 5,
           "scale": 2,
+          "default": "10",
           "mappedType": "decimal"
         },
         "act_prod_mtper_hr": {
@@ -375,9 +376,10 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "precision": 5,
           "scale": 2,
+          "default": "10",
           "mappedType": "decimal"
         },
         "created_at": {
