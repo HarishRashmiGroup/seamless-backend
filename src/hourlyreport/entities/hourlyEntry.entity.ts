@@ -51,6 +51,12 @@ export class HourlyEntry {
     @Property({ columnType: 'decimal(5,2)' })
     actProdPerHr: number;
 
+    @Property({ columnType: 'decimal(5,2)' })
+    stdProdMTPerHr: number;
+
+    @Property({ columnType: 'decimal(5,2)' })
+    actProdMTPerHr: number;
+
     @Property()
     createdAt: Date = new Date();
 
@@ -69,7 +75,9 @@ export class HourlyEntry {
         shift,
         diaDetails,
         stdProdPerHr,
-        actProdPerHr
+        actProdPerHr,
+        stdProdMTPerHr,
+        actProdMTPerHr
     }: {
         operatorName: string,
         operatorPhoneNo: string,
@@ -82,7 +90,9 @@ export class HourlyEntry {
         shift: Shift,
         diaDetails: DiaDetailsRO[],
         stdProdPerHr: number,
-        actProdPerHr: number
+        actProdPerHr: number,
+        stdProdMTPerHr: number,
+        actProdMTPerHr: number
     }) {
         this.operatorName = operatorName;
         this.operatorPhoneNo = operatorPhoneNo;
@@ -97,6 +107,8 @@ export class HourlyEntry {
         this.diaDetails = diaDetails;
         this.stdProdPerHr = stdProdPerHr;
         this.actProdPerHr = actProdPerHr;
+        this.stdProdMTPerHr = stdProdMTPerHr;
+        this.actProdMTPerHr = actProdMTPerHr;
     }
 
 }

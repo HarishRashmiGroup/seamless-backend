@@ -3,6 +3,6 @@ import { UserPipe } from "../../user.pipe";
 
 export const User = createParamDecorator((_data, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
-    return Number(request.user.userId);
+    return Number(request.user.id);
 });
 export const GetUserFromToken = () => User(UserPipe);

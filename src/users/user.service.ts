@@ -61,4 +61,13 @@ export class UserService {
         };
     }
 
+    async getBasicDetails(id: number) {
+        const user = await this.userRepository.findOneOrFail(id);
+        return ({
+            department: user.department,
+            role: user.role,
+            name: user.userName,
+        })
+    }
+
 }

@@ -70,6 +70,8 @@ export class ProductionDataRO {
     shiftLetter: string;
     runningMints: number;
     status: boolean;
+    stdProdMTPerHr: number;
+    actProdMTPerHr: number;
     constructor(entry: HourlyEntry) {
         this.id = entry.id;
         this.operatorName = entry.operatorName;
@@ -86,6 +88,8 @@ export class ProductionDataRO {
         this.actProdPerHr = entry.actProdPerHr;
         this.stdProdPerHr = entry.stdProdPerHr;
         this.runningMints = 60 - sumBy(this.breakdownDetails, 'duration');
+        this.stdProdMTPerHr = entry.stdProdMTPerHr;
+        this.actProdMTPerHr = entry.actProdMTPerHr;
     }
 }
 

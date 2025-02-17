@@ -358,6 +358,28 @@
           "scale": 2,
           "mappedType": "decimal"
         },
+        "std_prod_mtper_hr": {
+          "name": "std_prod_mtper_hr",
+          "type": "decimal(5,2)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "precision": 5,
+          "scale": 2,
+          "mappedType": "decimal"
+        },
+        "act_prod_mtper_hr": {
+          "name": "act_prod_mtper_hr",
+          "type": "decimal(5,2)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "precision": 5,
+          "scale": 2,
+          "mappedType": "decimal"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamptz",

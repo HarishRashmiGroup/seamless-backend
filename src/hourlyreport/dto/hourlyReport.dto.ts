@@ -69,6 +69,13 @@ export class HourlyReportDto {
     @Transform(({ value }) => Number(value))
     @IsNumber()
     stdProdPerHr: number;
+    @Transform(({ value }) => Number(value))
+    @IsNumber()
+    actProdMTPerHr: number;
+
+    @Transform(({ value }) => Number(value))
+    @IsNumber()
+    stdProdMTPerHr: number;
 
     @IsArray()
     @ValidateNested({ each: true })

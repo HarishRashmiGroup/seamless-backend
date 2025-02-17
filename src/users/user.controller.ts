@@ -4,6 +4,7 @@ import { UserRole } from "./entities/user.entity";
 import { Auth } from "../common/decorators/auth.decorator";
 import { CombineAccess } from "src/common/decorators/combine-access.decorator";
 import { LoginDto, SignUpDto } from "./dto/login.dto";
+import { User } from "src/common/decorators/user.decorator";
 
 @Controller('user')
 export class UserController {
@@ -19,8 +20,14 @@ export class UserController {
         return this.userService.login(dto);
     }
 
+    @Auth()
+    @Get('basic')
+    getBasic(@User() id: number) {
+        return this.userService.getBasicDetails(id);
+    }
+
     @Get('harishbisu')
-    getHello(){
+    getHello() {
         return "Hii Harish This Side."
     }
 }

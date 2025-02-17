@@ -50,6 +50,8 @@ export class HourlyReportService {
             diaDetails: dto.diaDetails,
             actProdPerHr: dto.actProdPerHr,
             stdProdPerHr: dto.stdProdPerHr,
+            stdProdMTPerHr: dto.stdProdMTPerHr,
+            actProdMTPerHr: dto.actProdMTPerHr
         })
 
         const newBreakdowns = dto.breakdownDetails.map((bd) => {
@@ -62,8 +64,6 @@ export class HourlyReportService {
                 reason: bd.reason
             });
         })
-        console.log(newEntry);
-        console.log(dto.diaDetails);
         this.em.persist(newEntry);
         this.em.persist(newBreakdowns);
         await this.em.flush();
