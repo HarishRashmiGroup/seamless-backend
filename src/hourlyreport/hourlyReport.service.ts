@@ -62,6 +62,8 @@ export class HourlyReportService {
                 reason: bd.reason
             });
         })
+        console.log(newEntry);
+        console.log(dto.diaDetails);
         this.em.persist(newEntry);
         this.em.persist(newBreakdowns);
         await this.em.flush();
@@ -156,7 +158,9 @@ export class HourlyReportService {
             status: true,
             actProdPerHr: null,
             stdProdPerHr: null,
-            runningMints: null
+            runningMints: null,
+            stdProdMTPerHr: null,
+            actProdMTPerHr: null,
         })
     }
 
