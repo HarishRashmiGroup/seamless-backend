@@ -3,7 +3,7 @@ import { DiaDetails } from "../dto/diaDetails.dto";
 import { BreakDown } from "../entities/breakDown.entity";
 import { HourlyEntry } from "../entities/hourlyEntry.entity";
 import { DiaDetailsRO } from "./diaDetails.ro";
-import _ from 'lodash';
+import _, { sumBy } from 'lodash';
 import { orderBy } from 'lodash';
 
 export class BreadkDownDetailsRO {
@@ -85,9 +85,7 @@ export class ProductionDataRO {
         this.shiftLetter = entry.shift.shift;
         this.actProdPerHr = entry.actProdPerHr;
         this.stdProdPerHr = entry.stdProdPerHr;
-        this.runningMints = 60 - this.breakdownDetails
-            .map((bd) => Number(bd.duration))
-            .reduce((sum, duration) => sum + duration, 0);
+        this.runningMints = 60 - sumBy(this.breakdownDetails, 'duration');
     }
 }
 
@@ -118,6 +116,6 @@ export class ShiftReportRowRO {
         this.breakdowns = entry.breakdowns.getItems().map((bd) => new BreadkDownDetailsRO(bd))
         this.actProdPerHr = entry.actProdPerHr;
         this.difference = entry.stdProdPerHr - entry.actProdPerHr;
-        this.runningMints = 60 - 0;
+        this.runningMints = 60 - sumBy(this.breakdowns, 'duration');
     }
 }

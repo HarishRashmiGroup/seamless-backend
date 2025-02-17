@@ -338,23 +338,23 @@
         },
         "std_prod_per_hr": {
           "name": "std_prod_per_hr",
-          "type": "decimal(4,2)",
+          "type": "decimal(5,2)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "precision": 4,
+          "precision": 5,
           "scale": 2,
           "mappedType": "decimal"
         },
         "act_prod_per_hr": {
           "name": "act_prod_per_hr",
-          "type": "decimal(4,2)",
+          "type": "decimal(5,2)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "precision": 4,
+          "precision": 5,
           "scale": 2,
           "mappedType": "decimal"
         },

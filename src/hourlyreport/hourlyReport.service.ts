@@ -148,6 +148,7 @@ export class HourlyReportService {
             diaDetails:
                 [{
                     "length": null,
+                    "od": null,
                     "diameter": null,
                     "thickness": null
                 }],

@@ -12,5 +12,9 @@ export class DiaDetails {
 
     @Transform(({ value }) => parseFloat(value))
     @IsNumber()
+    od: number;
+
+    @Transform(({ value }) => parseFloat(value))
+    @IsNumber()
     length: number;
 }

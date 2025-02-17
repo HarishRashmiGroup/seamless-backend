@@ -2,7 +2,6 @@ import { Collection, DecimalType, Entity, ManyToOne, OneToMany, PrimaryKey, Prop
 import { Machine } from "../../basic/entities/machine.entity";
 import { Shift } from "../../basic/entities/shift.entity";
 import { BreakDown } from "./breakDown.entity";
-import { DiaDetails } from "../dto/diaDetails.dto";
 import { DiaDetailsRO } from "../ro/diaDetails.ro";
 
 @Entity()
@@ -46,10 +45,10 @@ export class HourlyEntry {
     @OneToMany({ entity: () => BreakDown, mappedBy: 'hourlyEntry' })
     breakdowns = new Collection<BreakDown>(this);
 
-    @Property({ columnType: 'decimal(4,2)' })
+    @Property({ columnType: 'decimal(5,2)' })
     stdProdPerHr: number;
 
-    @Property({ columnType: 'decimal(4,2)' })
+    @Property({ columnType: 'decimal(5,2)' })
     actProdPerHr: number;
 
     @Property()
