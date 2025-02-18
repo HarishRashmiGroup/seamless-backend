@@ -27,7 +27,6 @@ export class UserService {
     async newUser({ userName, passkey, role }: { userName: string, passkey: string, role: UserRole }) {
         const saltRounds = 10;
         const salt = await bcrypt.genSalt(saltRounds);
-        console.log(passkey)
         const hashedPassword = await bcrypt.hash(passkey, salt);
         const user = new User({ userName, passkey: hashedPassword, role: role === UserRole.admin ? UserRole.operator : role });
         await this.em.persistAndFlush(user);

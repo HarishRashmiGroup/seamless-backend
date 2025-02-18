@@ -196,7 +196,6 @@ export class HourlyReportService {
     async recordBreakdownDetails(dto: RecordBreakdownDto) {
         const breakDown = await this.breakDownRepository.findOneOrFail({ id: dto.id });
         const tdc = dto.date && !isNaN(new Date(dto.date).getTime()) ? new Date(dto.date) : null;
-        console.log(dto);
         wrap(breakDown).assign({
             reason: dto.reason,
             tempSolution: dto.tempSolution,
@@ -232,8 +231,6 @@ export class HourlyReportService {
             const relevantBreakdowns = user.role === UserRole.maintenance
                 ? entry.breakdowns?.getItems()?.filter(bd => departments.includes(bd.departement?.id)) || []
                 : entry.breakdowns?.getItems() || [];
-            console.log(relevantBreakdowns);
-            console.log(entry.breakdowns.getItems());
             if (relevantBreakdowns.length === 0) {
                 shiftStatusMap.set(entry.shift.id, 0);
             } else if (relevantBreakdowns.every(bd => bd.isApproved === true)) {
