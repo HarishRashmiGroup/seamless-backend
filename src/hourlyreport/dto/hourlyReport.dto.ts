@@ -150,3 +150,12 @@ export class GetShiftReportDto {
     @IsNumber()
     machineId: number;
 }
+
+export class GetColorsDto {
+    @IsString()
+    date: string;
+
+    @Transform(({ value }) => Number(value))
+    @IsNumber()
+    machineId: number
+}

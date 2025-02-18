@@ -3,14 +3,14 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { HourlyEntry } from "./entities/hourlyEntry.entity";
 import { EntityManager, EntityRepository, wrap } from "@mikro-orm/postgresql";
 import { BreakDown } from "./entities/breakDown.entity";
-import { GetShiftReportDto, HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
+import { GetColorsDto, GetShiftReportDto, HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
 import { Machine } from "src/basic/entities/machine.entity";
 import { RootCause } from "src/basic/entities/rootCause.entity";
 import { Shift } from "src/basic/entities/shift.entity";
 import { Department } from "src/basic/entities/department.entity";
 import { BDType } from "src/basic/entities/bdtype.enity";
 import { ProductionDataRO, ShiftReportRowRO } from "./ro/productionData.ro";
-import { User } from "src/users/entities/user.entity";
+import { User, UserRole } from "src/users/entities/user.entity";
 
 @Injectable()
 export class HourlyReportService {
@@ -215,5 +215,35 @@ export class HourlyReportService {
             message: `B.D ${dto.reason.slice(0, 15)}... resolved.`,
             status: 200 as const
         }
+    }
+
+    async getColors(user: User, dto: GetColorsDto) {
+        const date = new Date(dto.date);
+        const entries = await this.hourlyEntryRepository.find({
+            machine: dto.machineId,
+            date,
+        }, {
+            populate: ['breakdowns', 'shift']
+        }
+        );
+        const shiftStatusMap = new Map<number, number>();
+        entries.forEach(entry => {
+            const relevantBreakdowns = user.role === UserRole.maintenance
+                ? entry.breakdowns.getItems().filter(bd => user.department.includes(bd.departement.id))
+                : entry.breakdowns.getItems();
+
+            if (relevantBreakdowns.length === 0) {
+                shiftStatusMap.set(entry.shift.id, 0);
+            } else if (relevantBreakdowns.every(bd => bd.isApproved === true)) {
+                shiftStatusMap.set(entry.shift.id, 1);
+            } else {
+                shiftStatusMap.set(entry.shift.id, 2);
+            }
+        });
+        return ({
+            map: shiftStatusMap,
+            message: "Status Fetch Successfully.",
+            status: 200 as const
+        })
     }
 }
