@@ -20,7 +20,7 @@ export class User {
     passkey: string;
 
     @Property({ type: 'array', default: [] })
-    department: string[] = []
+    department: number[] = []
 
     @Enum(() => UserRole)
     role: UserRole;
