@@ -43,6 +43,6 @@ export class HourlyReportController {
     @CombineAccess([UserRole.admin, UserRole.head, UserRole.maintenance])
     @Get('/colors')
     getColors(@GetUserFromToken() user: UserEntity, @Query() dto: GetColorsDto) {
-        this.hourlyReportService.getColors(user, dto);
+        return this.hourlyReportService.getColors(user, dto);
     }
 }

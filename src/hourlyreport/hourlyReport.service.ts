@@ -229,9 +229,9 @@ export class HourlyReportService {
         const shiftStatusMap = new Map<number, number>();
         entries.forEach(entry => {
             const relevantBreakdowns = user.role === UserRole.maintenance
-                ? entry.breakdowns.getItems().filter(bd => user.department.includes(bd.departement.id))
-                : entry.breakdowns.getItems();
-
+                ? entry.breakdowns?.getItems()?.filter(bd => user.department.includes(bd.departement?.id)) || []
+                : entry.breakdowns?.getItems() || [];
+        
             if (relevantBreakdowns.length === 0) {
                 shiftStatusMap.set(entry.shift.id, 0);
             } else if (relevantBreakdowns.every(bd => bd.isApproved === true)) {
@@ -240,8 +240,9 @@ export class HourlyReportService {
                 shiftStatusMap.set(entry.shift.id, 2);
             }
         });
+        console.log(shiftStatusMap);
         return ({
-            map: shiftStatusMap,
+            map: Object.fromEntries(shiftStatusMap),
             message: "Status Fetch Successfully.",
             status: 200 as const
         })
