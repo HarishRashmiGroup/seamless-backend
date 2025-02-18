@@ -123,7 +123,7 @@ export class HourlyReportService {
     async getProductionData(id: number, shiftId: number, date: string, machineId: number) {
         const [entry, shift, user] = await Promise.all([
             this.hourlyEntryRepository.findOne(
-                { machine: { id: machineId }, dateString: date, shift: { id: shiftId } },
+                { machine: { id: machineId }, date, shift: { id: shiftId } },
                 { populate: ['breakdowns', 'shift'] }
             ),
             this.shiftRepository.findOneOrFail(
@@ -226,12 +226,14 @@ export class HourlyReportService {
             populate: ['breakdowns', 'shift']
         }
         );
+        const departments = user.department.map(department => Number(department));
         const shiftStatusMap = new Map<number, number>();
         entries.forEach(entry => {
             const relevantBreakdowns = user.role === UserRole.maintenance
-                ? entry.breakdowns?.getItems()?.filter(bd => user.department.includes(bd.departement?.id)) || []
+                ? entry.breakdowns?.getItems()?.filter(bd => departments.includes(bd.departement?.id)) || []
                 : entry.breakdowns?.getItems() || [];
-        
+            console.log(relevantBreakdowns);
+            console.log(entry.breakdowns.getItems());
             if (relevantBreakdowns.length === 0) {
                 shiftStatusMap.set(entry.shift.id, 0);
             } else if (relevantBreakdowns.every(bd => bd.isApproved === true)) {
@@ -240,7 +242,6 @@ export class HourlyReportService {
                 shiftStatusMap.set(entry.shift.id, 2);
             }
         });
-        console.log(shiftStatusMap);
         return ({
             map: Object.fromEntries(shiftStatusMap),
             message: "Status Fetch Successfully.",

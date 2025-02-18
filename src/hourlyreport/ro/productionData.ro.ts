@@ -74,6 +74,7 @@ export class ProductionDataRO {
     stdProdMTPerHr: number;
     actProdMTPerHr: number;
     constructor(entry: HourlyEntry, user: User) {
+        const departments = user.department.map(department => Number(department));
         const breakDowns = orderBy(entry.breakdowns.getItems(), ['createdAt'], ['asc']).map((bd: BreakDown) => new BreadkDownDetailsRO(bd));
         this.id = entry.id;
         this.operatorName = entry.operatorName;
@@ -85,7 +86,7 @@ export class ProductionDataRO {
         this.diaDetails = entry.diaDetails;
         this.machineId = entry.machine.id;
         this.breakdownDetails = user.role === UserRole.maintenance ?
-            breakDowns.filter((bd) => user.department.includes(bd.departmentId)) : breakDowns;
+            breakDowns.filter((bd) => departments.includes(bd.departmentId)) : breakDowns;
         this.status = true;
         this.shiftLetter = entry.shift.shift;
         this.actProdPerHr = entry.actProdPerHr;
