@@ -10,6 +10,7 @@ import { Shift } from "src/basic/entities/shift.entity";
 import { Department } from "src/basic/entities/department.entity";
 import { BDType } from "src/basic/entities/bdtype.enity";
 import { ProductionDataRO, ShiftReportRowRO } from "./ro/productionData.ro";
+import { User } from "src/users/entities/user.entity";
 
 @Injectable()
 export class HourlyReportService {
@@ -31,10 +32,11 @@ export class HourlyReportService {
 
         private readonly em: EntityManager,
     ) { }
-    async recordHourlyData(dto: HourlyReportDto) {
-        const [machine, shift] = await Promise.all([
+    async recordHourlyData(id: number, dto: HourlyReportDto) {
+        const [machine, shift, user] = await Promise.all([
             this.machineRepository.findOneOrFail({ id: dto.machineId }),
-            this.shiftRepository.findOneOrFail({ id: dto.shiftId })
+            this.shiftRepository.findOneOrFail({ id: dto.shiftId }),
+            this.em.findOneOrFail(User, { id })
         ])
 
         const newEntry = new HourlyEntry({
@@ -68,17 +70,18 @@ export class HourlyReportService {
         this.em.persist(newBreakdowns);
         await this.em.flush();
         return {
-            formData: new ProductionDataRO(newEntry),
+            formData: new ProductionDataRO(newEntry, user),
             message: `Production Data recorded for shift ${shift.shift} ${shift.interval}`,
             status: 200 as const
         }
     }
 
-    async updateHourlyData(id: number, dto: HourlyReportDto) {
-        const [machine, shift, entry] = await Promise.all([
+    async updateHourlyData(userId: number, id: number, dto: HourlyReportDto) {
+        const [machine, shift, entry, user] = await Promise.all([
             this.machineRepository.findOneOrFail({ id: dto.machineId }),
             this.shiftRepository.findOneOrFail({ id: dto.shiftId }),
-            this.hourlyEntryRepository.findOneOrFail({ id: id }, { populate: ['breakdowns'] })
+            this.hourlyEntryRepository.findOneOrFail({ id: id }, { populate: ['breakdowns'] }),
+            this.em.findOneOrFail(User, { id: userId })
         ])
         if (entry.machine.id != dto.machineId) {
             throw new BadRequestException('Machine details can not be modified for a submitted data. Please refresh the page and try again.')
@@ -98,7 +101,6 @@ export class HourlyReportService {
             stdProdPerHr: dto.stdProdPerHr,
         });
 
-        console.log(dto.breakdownDetails)
         dto.breakdownDetails.filter((bd) => bd.id == 0).map((bd) => {
             const newbd = new BreakDown({
                 startTime: bd.startTime,
@@ -112,14 +114,14 @@ export class HourlyReportService {
         });
         await this.em.flush();
         return {
-            formData: new ProductionDataRO(entry),
+            formData: new ProductionDataRO(entry, user),
             message: `Production Data updated for shift ${shift.shift} ${shift.interval}`,
             status: 200 as const
         }
     }
 
-    async getProductionData(shiftId: number, date: string, machineId: number) {
-        const [entry, shift] = await Promise.all([
+    async getProductionData(id: number, shiftId: number, date: string, machineId: number) {
+        const [entry, shift, user] = await Promise.all([
             this.hourlyEntryRepository.findOne(
                 { machine: { id: machineId }, dateString: date, shift: { id: shiftId } },
                 { populate: ['breakdowns', 'shift'] }
@@ -128,10 +130,11 @@ export class HourlyReportService {
                 {
                     id: shiftId
                 }
-            )
+            ),
+            this.em.findOneOrFail(User, { id })
         ]);
         if (entry)
-            return new ProductionDataRO(entry);
+            return new ProductionDataRO(entry, user);
         const basicDetails = await this.hourlyEntryRepository.findOne(
             {
                 machine: machineId,

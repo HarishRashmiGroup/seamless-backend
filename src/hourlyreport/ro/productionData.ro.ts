@@ -5,6 +5,7 @@ import { HourlyEntry } from "../entities/hourlyEntry.entity";
 import { DiaDetailsRO } from "./diaDetails.ro";
 import _, { sumBy } from 'lodash';
 import { orderBy } from 'lodash';
+import { User, UserRole } from "src/users/entities/user.entity";
 
 export class BreadkDownDetailsRO {
     id: number;
@@ -72,7 +73,8 @@ export class ProductionDataRO {
     status: boolean;
     stdProdMTPerHr: number;
     actProdMTPerHr: number;
-    constructor(entry: HourlyEntry) {
+    constructor(entry: HourlyEntry, user: User) {
+        const breakDowns = orderBy(entry.breakdowns.getItems(), ['createdAt'], ['asc']).map((bd: BreakDown) => new BreadkDownDetailsRO(bd));
         this.id = entry.id;
         this.operatorName = entry.operatorName;
         this.operatorPhoneNo = entry.operatorPhoneNo;
@@ -82,12 +84,13 @@ export class ProductionDataRO {
         this.shiftSuperVisorPhoneNo = entry.shiftSuperVisorPhoneNo;
         this.diaDetails = entry.diaDetails;
         this.machineId = entry.machine.id;
-        this.breakdownDetails = orderBy(entry.breakdowns.getItems(), ['createdAt'], ['asc']).map((bd: BreakDown) => new BreadkDownDetailsRO(bd));
+        this.breakdownDetails = user.role === UserRole.maintenance ?
+            breakDowns.filter((bd) => user.department.includes(bd.departmentId)) : breakDowns;
         this.status = true;
         this.shiftLetter = entry.shift.shift;
         this.actProdPerHr = entry.actProdPerHr;
         this.stdProdPerHr = entry.stdProdPerHr;
-        this.runningMints = 60 - sumBy(this.breakdownDetails, 'duration');
+        this.runningMints = 60 - sumBy(breakDowns, 'duration');
         this.stdProdMTPerHr = entry.stdProdMTPerHr;
         this.actProdMTPerHr = entry.actProdMTPerHr;
     }

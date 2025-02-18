@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { GetHourlyReportDto, GetShiftReportDto, HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
 import { HourlyReportService } from "./hourlyReport.service";
+import { User } from "src/common/decorators/user.decorator";
+import { Auth } from "src/common/decorators/auth.decorator";
 
 @Controller('hourly')
 export class HourlyReportController {
@@ -8,14 +10,16 @@ export class HourlyReportController {
         private readonly hourlyReportService: HourlyReportService
     ) { }
 
+    @Auth()
     @Post('prod')
-    recordHourlyData(@Body() dto: HourlyReportDto) {
-        return this.hourlyReportService.recordHourlyData(dto);
+    recordHourlyData(@User() id: number, @Body() dto: HourlyReportDto) {
+        return this.hourlyReportService.recordHourlyData(id, dto);
     }
 
+    @Auth()
     @Post('prod/:id')
-    updateHourlyData(@Param('id') id: number, @Body() dto: HourlyReportDto) {
-        return this.hourlyReportService.updateHourlyData(id, dto);
+    updateHourlyData(@User() userId: number, @Param('id') id: number, @Body() dto: HourlyReportDto) {
+        return this.hourlyReportService.updateHourlyData(userId, id, dto);
     }
 
     @Post('breakdown')
@@ -23,9 +27,10 @@ export class HourlyReportController {
         return this.hourlyReportService.recordBreakdownDetails(dto);
     }
 
+    @Auth()
     @Get('/prod')
-    getHourlyRecord(@Query() dto: GetHourlyReportDto) {
-        return this.hourlyReportService.getProductionData(dto.shiftId, dto.date, dto.machineId);
+    getHourlyRecord(@Query() dto: GetHourlyReportDto, @User() id: number) {
+        return this.hourlyReportService.getProductionData(id, dto.shiftId, dto.date, dto.machineId);
     }
 
     @Get('/shift')
