@@ -3,7 +3,7 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { HourlyEntry } from "./entities/hourlyEntry.entity";
 import { EntityManager, EntityRepository, wrap } from "@mikro-orm/postgresql";
 import { BreakDown } from "./entities/breakDown.entity";
-import { GetColorsDto, GetShiftReportDto, HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
+import { DashboardDto, GetColorsDto, GetShiftReportDto, HourlyReportDto, RecordBreakdownDto, ResultMap } from "./dto/hourlyReport.dto";
 import { Machine } from "src/basic/entities/machine.entity";
 import { RootCause } from "src/basic/entities/rootCause.entity";
 import { Shift } from "src/basic/entities/shift.entity";
@@ -153,7 +153,7 @@ export class HourlyReportService {
             diaDetails:
                 [{
                     "length": null,
-                    "od": null,
+                    "nos": null,
                     "diameter": null,
                     "thickness": null
                 }],
@@ -193,7 +193,8 @@ export class HourlyReportService {
         })
     }
 
-    async recordBreakdownDetails(dto: RecordBreakdownDto) {
+    async recordBreakdownDetails(user: User, dto: RecordBreakdownDto) {
+
         const breakDown = await this.breakDownRepository.findOneOrFail({ id: dto.id });
         const tdc = dto.date && !isNaN(new Date(dto.date).getTime()) ? new Date(dto.date) : null;
         wrap(breakDown).assign({
@@ -207,6 +208,7 @@ export class HourlyReportService {
             purchaseIssue: dto.purchaseIssue,
             departement: this.em.getReference(Department, dto.departmentId),
             type: this.em.getReference(BDType, dto.typeId),
+            isApproved: true,
             rootCause: !isNaN(dto.rootCauseId) ? this.em.getReference(RootCause, dto.rootCauseId) : null
         });
         await this.em.flush();
@@ -245,4 +247,74 @@ export class HourlyReportService {
             status: 200 as const
         })
     }
+
+    async getDashboard(dto: DashboardDto) {
+        const startDate = dto.startDate;
+        const endDate = dto.endDate;
+
+        const entries = await this.hourlyEntryRepository.find({
+            $and: [
+                {
+                    date: { $gte: startDate }
+                },
+                {
+                    date: { $lte: endDate }
+                }
+            ]
+        },
+            {
+                populate: ['shift', 'breakdowns', 'machine']
+            }
+        );
+        const result: ResultMap = {};
+
+        entries.forEach(entry => {
+            const { machine, actProdMTPerHr, breakdowns, stdProdMTPerHr, actProdPerHr, stdProdPerHr, shift } = entry;
+            const machineId = machine.id;
+            const machineName = machine.name;
+            const shiftKey = shift?.shift || "Unknown";
+            const runningMints = 60 - breakdowns.reduce((total, bd) => {
+                if (!bd.startTime || !bd.endTime) {
+                    return total;
+                }
+
+                const start = new Date(`2000/01/01 ${bd.startTime}`);
+                const end = new Date(`2000/01/01 ${bd.endTime}`);
+
+                if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                    return total;
+                }
+
+                return total + Math.round((end.getTime() - start.getTime()) / 60000);
+            }, 0);
+
+            if (!result[machineId]) {
+                result[machineId] = { A: {}, B: {}, C: {}, subtotal: {} };
+
+            }
+
+            if (!result[machineId][shiftKey]) {
+                result[machineId][shiftKey] = { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0 };
+            }
+
+            result[machineId][shiftKey].runningMints += runningMints || 0;
+            result[machineId][shiftKey].stdProdMTPerHr += stdProdMTPerHr || 0;
+            result[machineId][shiftKey].actProdPerHr += actProdPerHr || 0;
+            result[machineId][shiftKey].stdProdPerHr += stdProdPerHr || 0;
+            result[machineId][shiftKey].actProdMTPerHr += actProdMTPerHr || 0;
+
+            result[machineId].subtotal.runningMints = (result[machineId].subtotal.runningMints || 0) + (runningMints || 0);
+            result[machineId].subtotal.stdProdMTPerHr = (result[machineId].subtotal.stdProdMTPerHr || 0) + (stdProdMTPerHr || 0);
+            result[machineId].subtotal.actProdMTPerHr = (result[machineId].subtotal.actProdMTPerHr || 0) + (actProdMTPerHr || 0);
+            result[machineId].subtotal.actProdPerHr = (result[machineId].subtotal.actProdPerHr || 0) + (actProdPerHr || 0);
+            result[machineId].subtotal.stdProdPerHr = (result[machineId].subtotal.stdProdPerHr || 0) + (stdProdPerHr || 0);
+        });
+        return ({
+            // data: Object.fromEntries(Object.entries(result)),
+            data: JSON.stringify(result),
+            status: 200 as const,
+            messages: "Entry fetched successfully."
+        })
+    }
+
 }

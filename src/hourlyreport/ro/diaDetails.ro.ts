@@ -1,11 +1,11 @@
 export class DiaDetailsRO {
     diameter: number;
-    od: number;
+    nos: number;
     length: number;
     thickness: number;
-    constructor({ diameter, od, length, thickness }: { diameter: number, od: number; length: number, thickness: number }) {
+    constructor({ diameter, nos, length, thickness }: { diameter: number, nos: number; length: number, thickness: number }) {
         this.diameter = diameter;
-        this.od = od;
+        this.nos = nos;
         this.thickness = thickness;
         this.length = length
     }

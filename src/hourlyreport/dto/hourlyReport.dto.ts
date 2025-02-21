@@ -3,6 +3,22 @@ import { IsArray, IsEnum, IsNumber, IsObject, IsOptional, IsString, ValidateNest
 import { DiaDetails } from "./diaDetails.dto";
 import { ShiftEnum } from "src/basic/entities/shift.entity";
 
+export type ShiftData = {
+    runningMints?: number;
+    stdProdMTPerHr?: number;
+    actProdMTPerHr?: number;
+    actProdPerHr?: number;
+    stdProdPerHr?: number;
+};
+
+export type MachineData = {
+    [shift: string]: ShiftData;
+    subtotal: ShiftData;
+};
+
+export type ResultMap = {
+    [machineId: string]: MachineData;
+};
 
 export class BreakdownDetails {
     @IsOptional()
@@ -158,4 +174,12 @@ export class GetColorsDto {
     @Transform(({ value }) => Number(value))
     @IsNumber()
     machineId: number
+}
+
+export class DashboardDto {
+    @IsString()
+    startDate: string;
+
+    @IsString()
+    endDate: string;
 }

@@ -24,9 +24,10 @@ export class HourlyReportController {
         return this.hourlyReportService.updateHourlyData(userId, id, dto);
     }
 
+    @CombineAccess([UserRole.admin, UserRole.head, UserRole.maintenance])
     @Post('breakdown')
-    recordBreakdown(@Body() dto: RecordBreakdownDto) {
-        return this.hourlyReportService.recordBreakdownDetails(dto);
+    recordBreakdown(@Body() dto: RecordBreakdownDto, @GetUserFromToken() user: UserEntity) {
+        return this.hourlyReportService.recordBreakdownDetails(user, dto);
     }
 
     @Auth()
@@ -44,5 +45,10 @@ export class HourlyReportController {
     @Get('/colors')
     getColors(@GetUserFromToken() user: UserEntity, @Query() dto: GetColorsDto) {
         return this.hourlyReportService.getColors(user, dto);
+    }
+
+    @Get('/dashboard')
+    getDashboard() {
+        return this.hourlyReportService.getDashboard({ startDate: '2025-02-21', endDate: '2025-02-21' });
     }
 }
