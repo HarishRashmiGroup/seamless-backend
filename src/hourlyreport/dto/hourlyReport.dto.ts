@@ -3,23 +3,6 @@ import { IsArray, IsEnum, IsNumber, IsObject, IsOptional, IsString, ValidateNest
 import { DiaDetails } from "./diaDetails.dto";
 import { ShiftEnum } from "src/basic/entities/shift.entity";
 
-export type ShiftData = {
-    runningMints?: number;
-    stdProdMTPerHr?: number;
-    actProdMTPerHr?: number;
-    actProdPerHr?: number;
-    stdProdPerHr?: number;
-};
-
-export type MachineData = {
-    [shift: string]: ShiftData;
-    subtotal: ShiftData;
-};
-
-export type ResultMap = {
-    [machineId: string]: MachineData;
-};
-
 export class BreakdownDetails {
     @IsOptional()
     @Transform(({ value }) => Number(value))
@@ -182,4 +165,24 @@ export class DashboardDto {
 
     @IsString()
     endDate: string;
+}
+
+
+export interface ShiftData {
+    runningMints: number;
+    stdProdMTPerHr: number;
+    actProdMTPerHr: number;
+    actProdPerHr: number;
+    stdProdPerHr: number;
+    runningStatus: boolean;
+}
+
+export interface ResultMap {
+    [machineId: string]: {
+        A: ShiftData;
+        B: ShiftData;
+        C: ShiftData;
+        subtotal: ShiftData;
+        machine: string;
+    };
 }

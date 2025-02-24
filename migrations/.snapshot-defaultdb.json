@@ -104,6 +104,18 @@
           "nullable": false,
           "length": 255,
           "mappedType": "string"
+        },
+        "std_prod_per_hr": {
+          "name": "std_prod_per_hr",
+          "type": "decimal(5,2)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "precision": 5,
+          "scale": 2,
+          "default": "null",
+          "mappedType": "decimal"
         }
       },
       "name": "machine",

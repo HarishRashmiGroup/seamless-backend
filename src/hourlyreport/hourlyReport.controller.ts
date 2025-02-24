@@ -49,6 +49,6 @@ export class HourlyReportController {
 
     @Get('/dashboard')
     getDashboard() {
-        return this.hourlyReportService.getDashboard({ startDate: '2025-02-21', endDate: '2025-02-21' });
+        return this.hourlyReportService.getDashboard({ startDate: '2025-02-22', endDate: '2025-02-22' });
     }
 }

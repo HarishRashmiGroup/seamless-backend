@@ -6,7 +6,7 @@ import { BreakDown } from "./entities/breakDown.entity";
 import { DashboardDto, GetColorsDto, GetShiftReportDto, HourlyReportDto, RecordBreakdownDto, ResultMap } from "./dto/hourlyReport.dto";
 import { Machine } from "src/basic/entities/machine.entity";
 import { RootCause } from "src/basic/entities/rootCause.entity";
-import { Shift } from "src/basic/entities/shift.entity";
+import { Shift, ShiftEnum } from "src/basic/entities/shift.entity";
 import { Department } from "src/basic/entities/department.entity";
 import { BDType } from "src/basic/entities/bdtype.enity";
 import { ProductionDataRO, ShiftReportRowRO } from "./ro/productionData.ro";
@@ -121,7 +121,7 @@ export class HourlyReportService {
     }
 
     async getProductionData(id: number, shiftId: number, date: string, machineId: number) {
-        const [entry, shift, user] = await Promise.all([
+        const [entry, shift, user, machine] = await Promise.all([
             this.hourlyEntryRepository.findOne(
                 { machine: { id: machineId }, date, shift: { id: shiftId } },
                 { populate: ['breakdowns', 'shift'] }
@@ -131,7 +131,8 @@ export class HourlyReportService {
                     id: shiftId
                 }
             ),
-            this.em.findOneOrFail(User, { id })
+            this.em.findOneOrFail(User, { id }),
+            this.em.findOneOrFail(Machine, { id: machineId })
         ]);
         if (entry)
             return new ProductionDataRO(entry, user);
@@ -160,7 +161,7 @@ export class HourlyReportService {
             breakdownDetails: [],
             status: true,
             actProdPerHr: null,
-            stdProdPerHr: null,
+            stdProdPerHr: machine.stdProdPerHr,
             runningMints: null,
             stdProdMTPerHr: null,
             actProdMTPerHr: null,
@@ -249,72 +250,94 @@ export class HourlyReportService {
     }
 
     async getDashboard(dto: DashboardDto) {
-        const startDate = dto.startDate;
-        const endDate = dto.endDate;
+        const { startDate, endDate } = dto;
 
-        const entries = await this.hourlyEntryRepository.find({
-            $and: [
-                {
-                    date: { $gte: startDate }
-                },
-                {
-                    date: { $lte: endDate }
-                }
-            ]
-        },
+        const entries = await this.hourlyEntryRepository.find(
             {
-                populate: ['shift', 'breakdowns', 'machine']
+                $and: [
+                    { date: { $gte: startDate } },
+                    { date: { $lte: endDate } }
+                ]
+            },
+            {
+                populate: ['shift', 'breakdowns', 'machine'],
+                orderBy: { machine: { id: "ASC" } }
             }
         );
+
         const result: ResultMap = {};
 
         entries.forEach(entry => {
             const { machine, actProdMTPerHr, breakdowns, stdProdMTPerHr, actProdPerHr, stdProdPerHr, shift } = entry;
             const machineId = machine.id;
-            const machineName = machine.name;
-            const shiftKey = shift?.shift || "Unknown";
-            const runningMints = 60 - breakdowns.reduce((total, bd) => {
-                if (!bd.startTime || !bd.endTime) {
-                    return total;
-                }
+            const shiftKey: ShiftEnum = shift.shift;
+
+            const bdDuration = breakdowns.reduce((total: number, bd: BreakDown) => {
+                if (!bd.startTime || !bd.endTime) return total;
 
                 const start = new Date(`2000/01/01 ${bd.startTime}`);
                 const end = new Date(`2000/01/01 ${bd.endTime}`);
 
-                if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-                    return total;
-                }
+                if (isNaN(start.getTime()) || isNaN(end.getTime())) return total;
 
                 return total + Math.round((end.getTime() - start.getTime()) / 60000);
             }, 0);
 
+            const runningMints = 60 - Number(bdDuration);
+
             if (!result[machineId]) {
-                result[machineId] = { A: {}, B: {}, C: {}, subtotal: {} };
-
-            }
-
-            if (!result[machineId][shiftKey]) {
-                result[machineId][shiftKey] = { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0 };
+                result[machineId] = {
+                    A: { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0, runningStatus: false },
+                    B: { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0, runningStatus: false },
+                    C: { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0, runningStatus: false },
+                    subtotal: { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0, runningStatus: false },
+                    machine: entry.machine.name
+                };
             }
 
             result[machineId][shiftKey].runningMints += runningMints || 0;
             result[machineId][shiftKey].stdProdMTPerHr += stdProdMTPerHr || 0;
+            result[machineId][shiftKey].actProdMTPerHr += actProdMTPerHr || 0;
             result[machineId][shiftKey].actProdPerHr += actProdPerHr || 0;
             result[machineId][shiftKey].stdProdPerHr += stdProdPerHr || 0;
-            result[machineId][shiftKey].actProdMTPerHr += actProdMTPerHr || 0;
+            result[machineId][shiftKey].runningStatus = true;
 
-            result[machineId].subtotal.runningMints = (result[machineId].subtotal.runningMints || 0) + (runningMints || 0);
-            result[machineId].subtotal.stdProdMTPerHr = (result[machineId].subtotal.stdProdMTPerHr || 0) + (stdProdMTPerHr || 0);
-            result[machineId].subtotal.actProdMTPerHr = (result[machineId].subtotal.actProdMTPerHr || 0) + (actProdMTPerHr || 0);
-            result[machineId].subtotal.actProdPerHr = (result[machineId].subtotal.actProdPerHr || 0) + (actProdPerHr || 0);
-            result[machineId].subtotal.stdProdPerHr = (result[machineId].subtotal.stdProdPerHr || 0) + (stdProdPerHr || 0);
+            result[machineId].subtotal.runningMints += runningMints || 0;
+            result[machineId].subtotal.stdProdMTPerHr += stdProdMTPerHr || 0;
+            result[machineId].subtotal.actProdMTPerHr += actProdMTPerHr || 0;
+            result[machineId].subtotal.actProdPerHr += actProdPerHr || 0;
+            result[machineId].subtotal.stdProdPerHr += stdProdPerHr || 0;
         });
-        return ({
-            // data: Object.fromEntries(Object.entries(result)),
-            data: JSON.stringify(result),
+
+        const flatArray = Object.entries(result).flatMap(([machineId, shifts]) =>
+            ["A", "B", "C", "subtotal"].map(shiftKey => ({
+                machineId,
+                machine: shifts.machine,
+                shift: shiftKey,
+                avgWtPerPc: shifts[shiftKey].actProdPerHr ? ((shifts[shiftKey].actProdMTPerHr * 1000) / shifts[shiftKey].actProdPerHr).toFixed(2) : "0",
+                targetRunningHr: shiftKey !== "subtotal"
+                    ? (shifts[shiftKey].runningStatus ? 8 : 0)
+                    : ["A", "B", "C"].reduce((sum, key) => sum + (shifts[key].runningStatus ? 8 : 0), 0),
+                actualRunningHr: (shifts[shiftKey].runningMints / 60).toFixed(2) || "",
+                standardProduction: shifts[shiftKey].stdProdMTPerHr.toFixed(2) || "",
+                actualProduction: shifts[shiftKey].actProdMTPerHr.toFixed(2) || "",
+                lossMT: (shifts[shiftKey].stdProdMTPerHr - shifts[shiftKey].actProdMTPerHr).toFixed(2) || "",
+                targetProductionNos: (shifts[shiftKey].stdProdPerHr * 18).toFixed(0) || "",
+                actualProductionNos: (shifts[shiftKey].actProdPerHr * 18).toFixed(0) || "",
+                targetPcsPerHr: (6000 / Number(((shifts[shiftKey].actProdMTPerHr * 1000) / shifts[shiftKey].actProdPerHr).toFixed(2))).toFixed(2),
+                actualPcsPerHr: shifts[shiftKey].actProdPerHr.toFixed(2) || "",
+                lossPcsPerHr: (shifts[shiftKey].stdProdPerHr - shifts[shiftKey].actProdPerHr).toFixed(2),
+                efficiencyPercentage: ((shifts[shiftKey].actProdMTPerHr / shifts[shiftKey].stdProdMTPerHr) * 100).toFixed(2)
+            }))
+        );
+
+
+        return {
+            data: flatArray,
             status: 200 as const,
             messages: "Entry fetched successfully."
-        })
+        };
     }
+
 
 }
