@@ -31,10 +31,10 @@ export class BasicService {
     async getMachinesDropDown(user: User) {
         if (user.role === UserRole.operator || user.role === UserRole.maintenance) {
             const machine = await this.machineRepository.findOneOrFail({ id: user.machine.id });
-            return ({
+            return ([{
                 id: machine.id,
                 label: machine.name
-            });
+            }]);
         }
         const machines = await this.machineRepository.find({ id: { $ne: 0 } }, { orderBy: { id: 'ASC' } });
         return machines.map((machine) => ({
