@@ -6,6 +6,7 @@ import { RootCause } from "./entities/rootCause.entity";
 import { Shift, ShiftEnum } from "./entities/shift.entity";
 import { BDType } from "./entities/bdtype.enity";
 import { Department } from "./entities/department.entity";
+import { User, UserRole } from "src/users/entities/user.entity";
 
 @Injectable()
 export class BasicService {
@@ -27,8 +28,15 @@ export class BasicService {
 
         private readonly em: EntityManager,
     ) { }
-    async getMachinesDropDown() {
-        const machines = await this.machineRepository.find({ id: { $ne: 0 } });
+    async getMachinesDropDown(user: User) {
+        if (user.role === UserRole.operator || user.role === UserRole.maintenance) {
+            const machine = await this.machineRepository.findOneOrFail({ id: user.machine.id });
+            return ({
+                id: machine.id,
+                label: machine.name
+            });
+        }
+        const machines = await this.machineRepository.find({ id: { $ne: 0 } }, { orderBy: { id: 'ASC' } });
         return machines.map((machine) => ({
             id: machine.id,
             label: machine.name
@@ -36,7 +44,7 @@ export class BasicService {
     }
 
     async getShiftsDropDown(shift?: ShiftEnum, shiftId?: number) {
-        const reqShift = isNaN(shiftId) ? null : await this.shiftRepository.findOne({ id: shiftId });
+        const reqShift = isNaN(shiftId) ? null : await this.shiftRepository.findOne({ id: shiftId }, { orderBy: { id: 'ASC' } });
         const options: FilterQuery<Shift> = {};
         if (reqShift) options.shift = reqShift.shift;
         else if (shift) options.shift = shift;

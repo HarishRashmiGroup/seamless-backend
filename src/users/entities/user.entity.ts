@@ -1,4 +1,5 @@
-import { Entity, Enum, PrimaryKey, Property, Unique } from "@mikro-orm/core";
+import { Entity, Enum, ManyToOne, PrimaryKey, Property, Unique } from "@mikro-orm/core";
+import { Machine } from "../../basic/entities/machine.entity";
 
 export enum UserRole {
     operator = 'operator',
@@ -24,6 +25,9 @@ export class User {
 
     @Enum(() => UserRole)
     role: UserRole;
+
+    @ManyToOne({ entity: () => Machine, nullable: true })
+    machine: Machine;
 
     @Property()
     createdAt: Date = new Date();

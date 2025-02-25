@@ -66,6 +66,7 @@ export class UserService {
             department: user.department,
             role: user.role,
             name: user.userName,
+            path: user.role === UserRole.admin ? "/" : user.role === UserRole.maintenance ? "/maintenance" : "/hourly"
         })
     }
 
