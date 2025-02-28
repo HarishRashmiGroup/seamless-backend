@@ -174,7 +174,7 @@ export interface ShiftData {
     actProdMTPerHr: number;
     actProdPerHr: number;
     stdProdPerHr: number;
-    runningStatus: boolean;
+    targetRunningHrs: number;
 }
 
 export interface ResultMap {

@@ -163,7 +163,7 @@ export class HourlyReportService {
             actProdPerHr: null,
             stdProdPerHr: machine.stdProdPerHr,
             runningMints: null,
-            stdProdMTPerHr: null,
+            stdProdMTPerHr: basicDetails.stdProdMTPerHr || "",
             actProdMTPerHr: null,
         })
     }
@@ -287,10 +287,10 @@ export class HourlyReportService {
 
             if (!result[machineId]) {
                 result[machineId] = {
-                    A: { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0, runningStatus: false },
-                    B: { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0, runningStatus: false },
-                    C: { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0, runningStatus: false },
-                    subtotal: { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0, runningStatus: false },
+                    A: { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0, targetRunningHrs: 0 },
+                    B: { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0, targetRunningHrs: 0 },
+                    C: { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0, targetRunningHrs: 0 },
+                    subtotal: { runningMints: 0, stdProdMTPerHr: 0, actProdMTPerHr: 0, actProdPerHr: 0, stdProdPerHr: 0, targetRunningHrs: 0 },
                     machine: entry.machine.name
                 };
             }
@@ -300,13 +300,14 @@ export class HourlyReportService {
             result[machineId][shiftKey].actProdMTPerHr += actProdMTPerHr || 0;
             result[machineId][shiftKey].actProdPerHr += actProdPerHr || 0;
             result[machineId][shiftKey].stdProdPerHr += stdProdPerHr || 0;
-            result[machineId][shiftKey].runningStatus = true;
+            result[machineId][shiftKey].targetRunningHrs += 1;
 
             result[machineId].subtotal.runningMints += runningMints || 0;
             result[machineId].subtotal.stdProdMTPerHr += stdProdMTPerHr || 0;
             result[machineId].subtotal.actProdMTPerHr += actProdMTPerHr || 0;
             result[machineId].subtotal.actProdPerHr += actProdPerHr || 0;
             result[machineId].subtotal.stdProdPerHr += stdProdPerHr || 0;
+            result[machineId].subtotal.targetRunningHrs += 1;
         });
 
         const flatArray = Object.entries(result).flatMap(([machineId, shifts]) =>
@@ -315,9 +316,7 @@ export class HourlyReportService {
                 machine: shifts.machine,
                 shift: shiftKey,
                 avgWtPerPc: shifts[shiftKey].actProdPerHr ? ((shifts[shiftKey].actProdMTPerHr * 1000) / shifts[shiftKey].actProdPerHr).toFixed(2) : "0",
-                targetRunningHr: shiftKey !== "subtotal"
-                    ? (shifts[shiftKey].runningStatus ? 8 : 0)
-                    : ["A", "B", "C"].reduce((sum, key) => sum + (shifts[key].runningStatus ? 8 : 0), 0),
+                targetRunningHr: (shifts[shiftKey].targetRunningHrs).toFixed(2) || "",
                 actualRunningHr: (shifts[shiftKey].runningMints / 60).toFixed(2) || "",
                 standardProduction: shifts[shiftKey].stdProdMTPerHr.toFixed(2) || "",
                 actualProduction: shifts[shiftKey].actProdMTPerHr.toFixed(2) || "",

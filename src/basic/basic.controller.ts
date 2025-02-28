@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { BasicService } from "./basic.service";
-import { ShiftEnum } from "./entities/shift.entity";
-import { GetShiftsDto } from "./dto/getShift.dto";
+import { CreateDropDownDto, GetShiftsDto } from "./dto/getShift.dto";
 import { Auth } from "src/common/decorators/auth.decorator";
 import { GetUserFromToken } from "src/common/decorators/user.decorator";
-import { User } from "src/users/entities/user.entity";
+import { User, UserRole } from "src/users/entities/user.entity";
+import { CombineAccess } from "src/common/decorators/combine-access.decorator";
 
 @Controller('basic')
 export class BasicController {
@@ -25,5 +25,11 @@ export class BasicController {
     @Get('bd')
     getRootCauses() {
         return this.basicService.getBDDropDown();
+    }
+
+    @CombineAccess([UserRole.maintenance, UserRole.head, UserRole.admin])
+    @Post('/create-root-cause')
+    createRootCauses(@Body() dto: CreateDropDownDto) {
+        return this.basicService.createRootCause(dto.label);
     }
 }

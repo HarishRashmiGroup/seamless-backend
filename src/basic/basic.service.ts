@@ -57,6 +57,15 @@ export class BasicService {
         })));
     }
 
+    async createRootCause(label: string) {
+        const newEntry = new RootCause(label);
+        await this.em.persistAndFlush(newEntry);
+        return ({
+            id: newEntry.id,
+            label: newEntry.name
+        })
+    }
+
     async getBDDropDown() {
         const [rootCauses, types, departments] = await Promise.all([
             this.rootCauseRepository.find({ id: { $ne: 0 } }),

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
-import { GetColorsDto, GetHourlyReportDto, GetShiftReportDto, HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
+import { DashboardDto, GetColorsDto, GetHourlyReportDto, GetShiftReportDto, HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
 import { HourlyReportService } from "./hourlyReport.service";
 import { GetUserFromToken, User } from "src/common/decorators/user.decorator";
 import { Auth } from "src/common/decorators/auth.decorator";
@@ -13,19 +13,19 @@ export class HourlyReportController {
     ) { }
 
     @Auth()
-    @Post('prod')
+    @Post('/prod')
     recordHourlyData(@User() id: number, @Body() dto: HourlyReportDto) {
         return this.hourlyReportService.recordHourlyData(id, dto);
     }
 
     @CombineAccess([UserRole.admin, UserRole.head])
-    @Post('prod/:id')
+    @Post('/prod/:id')
     updateHourlyData(@User() userId: number, @Param('id') id: number, @Body() dto: HourlyReportDto) {
         return this.hourlyReportService.updateHourlyData(userId, id, dto);
     }
 
-    @CombineAccess([UserRole.admin, UserRole.head, UserRole.maintenance])
-    @Post('breakdown')
+    @Auth()
+    @Post('/breakdown')
     recordBreakdown(@Body() dto: RecordBreakdownDto, @GetUserFromToken() user: UserEntity) {
         return this.hourlyReportService.recordBreakdownDetails(user, dto);
     }
@@ -48,7 +48,7 @@ export class HourlyReportController {
     }
 
     @Get('/dashboard')
-    getDashboard() {
-        return this.hourlyReportService.getDashboard({ startDate: '2025-02-22', endDate: '2025-02-22' });
+    getDashboard(@Query() dto: DashboardDto) {
+        return this.hourlyReportService.getDashboard(dto);
     }
 }

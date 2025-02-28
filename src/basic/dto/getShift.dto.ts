@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { ShiftEnum } from "../entities/shift.entity";
 
 export class GetShiftsDto {
@@ -10,4 +10,8 @@ export class GetShiftsDto {
     @IsOptional()
     @IsNumber()
     shiftId: number
+}
+export class CreateDropDownDto {
+    @IsString()
+    label: string;
 }
