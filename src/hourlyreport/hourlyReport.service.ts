@@ -163,7 +163,7 @@ export class HourlyReportService {
             actProdPerHr: null,
             stdProdPerHr: machine.stdProdPerHr,
             runningMints: null,
-            stdProdMTPerHr: basicDetails.stdProdMTPerHr || "",
+            stdProdMTPerHr: basicDetails?.stdProdMTPerHr || "",
             actProdMTPerHr: null,
         })
     }
