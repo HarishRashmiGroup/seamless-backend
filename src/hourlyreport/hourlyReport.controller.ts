@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query, Res } from "@nestjs/common";
 import { DashboardDto, GetColorsDto, GetHourlyReportDto, GetShiftReportDto, HourlyReportDto, RecordBreakdownDto } from "./dto/hourlyReport.dto";
 import { HourlyReportService } from "./hourlyReport.service";
 import { GetUserFromToken, User } from "src/common/decorators/user.decorator";
 import { Auth } from "src/common/decorators/auth.decorator";
 import { CombineAccess } from "src/common/decorators/combine-access.decorator";
 import { User as UserEntity, UserRole } from "src/users/entities/user.entity";
+import { Response } from "express";
 
 @Controller('hourly')
 export class HourlyReportController {
@@ -48,7 +49,7 @@ export class HourlyReportController {
     }
 
     @Get('/dashboard')
-    getDashboard(@Query() dto: DashboardDto) {
-        return this.hourlyReportService.getDashboard(dto);
+    getDashboard(@Query() dto: DashboardDto, @Res() res: Response) {
+        return this.hourlyReportService.getDashboard(dto, res);
     }
 }

@@ -11,6 +11,8 @@ import { Department } from "src/basic/entities/department.entity";
 import { BDType } from "src/basic/entities/bdtype.enity";
 import { ProductionDataRO, ShiftReportRowRO } from "./ro/productionData.ro";
 import { User, UserRole } from "src/users/entities/user.entity";
+import * as ExcelJS from 'exceljs';
+import { Response } from 'express';
 
 @Injectable()
 export class HourlyReportService {
@@ -249,7 +251,7 @@ export class HourlyReportService {
         })
     }
 
-    async getDashboard(dto: DashboardDto) {
+    async getDashboard(dto: DashboardDto, res: Response) {
         const { startDate, endDate } = dto;
 
         const entries = await this.hourlyEntryRepository.find(
@@ -329,6 +331,9 @@ export class HourlyReportService {
                 efficiencyPercentage: ((shifts[shiftKey].actProdMTPerHr / shifts[shiftKey].stdProdMTPerHr) * 100).toFixed(2)
             }))
         );
+        if (dto.downloadRequest === 'true') {
+            return this.generateExcel(flatArray, res);
+        }
 
 
         return {
@@ -338,5 +343,178 @@ export class HourlyReportService {
         };
     }
 
+    async generateExcel(data: any[], res: Response) {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Production Data');
 
+        worksheet.columns = [
+            { header: 'Machine Name', key: 'machine', width: 20 },
+            { header: 'Shift', key: 'shift', width: 10 },
+            { header: 'Target Running Hr', key: 'targetRunningHr', width: 20 },
+            { header: 'Actual Running Hr', key: 'actualRunningHr', width: 20 },
+            { header: 'Standard Production', key: 'standardProduction', width: 20 },
+            { header: 'Actual Production', key: 'actualProduction', width: 20 },
+            { header: 'Loss (MT)', key: 'lossMT', width: 10 },
+            { header: 'Target Production Nos', key: 'targetProductionNos', width: 20 },
+            { header: 'Actual Production Nos', key: 'actualProductionNos', width: 20 },
+            { header: 'Target Pcs/Hr', key: 'targetPcsPerHr', width: 20 },
+            { header: 'Actual Pcs/Hr', key: 'actualPcsPerHr', width: 20 },
+            { header: 'Loss Pcs/Hr', key: 'lossPcsPerHr', width: 15 },
+            { header: 'Efficiency (%)', key: 'efficiencyPercentage', width: 15 },
+        ];
+
+        worksheet.getRow(1).eachCell((cell) => {
+            cell.font = { bold: true, color: { argb: 'FFFFFF' } };
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: '4472C4' }
+            };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+            };
+        });
+
+        const machineMap = new Map();
+
+        data.forEach(row => {
+            if (!machineMap.has(row.machine)) {
+                machineMap.set(row.machine, {
+                    A: null,
+                    B: null,
+                    C: null,
+                    subtotal: null
+                });
+            }
+        });
+
+        data.forEach(row => {
+            if (machineMap.has(row.machine) && ['A', 'B', 'C', 'subtotal'].includes(row.shift)) {
+                machineMap.get(row.machine)[row.shift] = row;
+            }
+        });
+
+        const sortedMachines = Array.from(machineMap.keys()).sort();
+        let rowIndex = 2;
+
+        sortedMachines.forEach(machineName => {
+            const machineData = machineMap.get(machineName);
+            const shiftOrder = ['A', 'B', 'C', 'subtotal'];
+
+            const firstRowIndex = rowIndex;
+
+            shiftOrder.forEach((shift, idx) => {
+                const row = machineData[shift] || {
+                    machine: machineName,
+                    shift: shift,
+                    targetRunningHr: '',
+                    actualRunningHr: '',
+                    standardProduction: '',
+                    actualProduction: '',
+                    lossMT: '',
+                    targetProductionNos: '',
+                    actualProductionNos: '',
+                    targetPcsPerHr: '',
+                    actualPcsPerHr: '',
+                    lossPcsPerHr: '',
+                    efficiencyPercentage: ''
+                };
+
+                const excelRow = worksheet.addRow({
+                    machine: idx === 0 ? machineName : '',
+                    shift: shift,
+                    targetRunningHr: row.targetRunningHr,
+                    actualRunningHr: row.actualRunningHr,
+                    standardProduction: row.standardProduction,
+                    actualProduction: row.actualProduction,
+                    lossMT: row.lossMT,
+                    targetProductionNos: row.targetProductionNos,
+                    actualProductionNos: row.actualProductionNos,
+                    targetPcsPerHr: row.targetPcsPerHr,
+                    actualPcsPerHr: row.actualPcsPerHr,
+                    lossPcsPerHr: row.lossPcsPerHr,
+                    efficiencyPercentage: row.efficiencyPercentage
+                });
+
+                for (let i = 3; i <= 13; i++) {
+                    if (excelRow.getCell(i).value) {
+                        excelRow.getCell(i).numFmt = i === 13 ? '0.00%' : '0.00';
+                    }
+                }
+
+                if (shift === 'subtotal') {
+                    excelRow.eachCell((cell, colNumber) => {
+                        cell.font = { bold: true };
+                        cell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'E6E6E6' }
+                        };
+                    });
+                }
+
+                excelRow.eachCell({ includeEmpty: true }, (cell) => {
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                });
+
+                rowIndex++;
+            });
+
+            if (shiftOrder.length > 0) {
+                worksheet.mergeCells(`A${firstRowIndex}:A${firstRowIndex + shiftOrder.length - 1}`);
+                worksheet.getCell(`A${firstRowIndex}`).alignment = {
+                    vertical: 'middle',
+                    horizontal: 'center'
+                };
+            }
+
+            // if (sortedMachines.indexOf(machineName) < sortedMachines.length - 1) {
+            //     const blankRow = worksheet.addRow([]);
+            //     blankRow.height = 6;
+            //     rowIndex++;
+            // }
+        });
+
+        worksheet.addConditionalFormatting({
+            ref: `M2:M${rowIndex - 1}`,
+            rules: [
+                {
+                    type: 'colorScale',
+                    priority: 1,
+                    cfvo: [
+                        { type: 'num', value: 0 },
+                        { type: 'num', value: 50 },
+                        { type: 'num', value: 100 }
+                    ],
+                    color: [
+                        { argb: 'F8696B' },
+                        { argb: 'FFEB84' },
+                        { argb: '63BE7B' }
+                    ]
+                }
+            ]
+        });
+
+        worksheet.properties.defaultRowHeight = 20;
+
+        worksheet.views = [
+            { state: 'frozen', xSplit: 0, ySplit: 1, activeCell: 'A2' }
+        ];
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename=production_report_${new Date().getTime()}.xlsx`);
+
+        await workbook.xlsx.write(res);
+        res.end();
+    }
 }

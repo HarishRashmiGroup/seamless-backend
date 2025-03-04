@@ -165,6 +165,10 @@ export class DashboardDto {
 
     @IsString()
     endDate: string;
+
+    @IsOptional()
+    @IsString()
+    downloadRequest: string;
 }
 
 
