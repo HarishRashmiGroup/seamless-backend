@@ -334,13 +334,11 @@ export class HourlyReportService {
         if (dto.downloadRequest === 'true') {
             return this.generateExcel(flatArray, res);
         }
-
-
-        return {
+        return res.status(200).json({
             data: flatArray,
-            status: 200 as const,
+            status: 200,
             messages: "Entry fetched successfully."
-        };
+        });
     }
 
     async generateExcel(data: any[], res: Response) {
