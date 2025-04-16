@@ -2,6 +2,7 @@ import { Transform, Type } from "class-transformer";
 import { IsArray, IsEnum, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from "class-validator"
 import { DiaDetails } from "./diaDetails.dto";
 import { ShiftEnum } from "src/basic/entities/shift.entity";
+import { DiaDetailsRO } from "../ro/diaDetails.ro";
 
 export class BreakdownDetails {
     @IsOptional()

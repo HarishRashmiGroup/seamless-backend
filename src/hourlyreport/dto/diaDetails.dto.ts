@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsNumber, IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString } from "class-validator";
 
 export class DiaDetails {
     @Transform(({ value }) => parseFloat(value))
@@ -17,4 +17,19 @@ export class DiaDetails {
     @Transform(({ value }) => parseFloat(value))
     @IsNumber()
     length: number;
+
+    @IsOptional()
+    @Transform(({ value }) => parseFloat(value))
+    @IsNumber()
+    outputLength: number;
+
+    @IsOptional()
+    @Transform(({ value }) => parseFloat(value))
+    @IsNumber()
+    outputThickness: number;
+
+    @IsOptional()
+    @Transform(({ value }) => parseFloat(value))
+    @IsNumber()
+    outputDiameter: number;
 }

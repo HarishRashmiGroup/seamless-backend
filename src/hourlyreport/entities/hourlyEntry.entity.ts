@@ -18,14 +18,14 @@ export class HourlyEntry {
     @Property()
     shiftIncharge: string;
 
-    @Property()
-    shiftInchargePhoneNo: string
+    @Property({ nullable: true })
+    shiftInchargePhoneNo: string | null;
 
     @Property()
     shiftSuperVisor: string;
 
-    @Property()
-    shiftSuperVisorPhoneNo: string;
+    @Property({ nullable: true })
+    shiftSuperVisorPhoneNo: string | null;
 
     @ManyToOne(() => Machine)
     machine: Machine;
@@ -80,11 +80,11 @@ export class HourlyEntry {
         actProdMTPerHr
     }: {
         operatorName: string,
-        operatorPhoneNo: string,
+        operatorPhoneNo: string | null,
         shiftIncharge: string,
-        shiftInchargePhoneNo: string,
+        shiftInchargePhoneNo: string | null,
         shiftSuperVisor: string,
-        shiftSuperVisorPhoneNo: string,
+        shiftSuperVisorPhoneNo: string | null,
         date: string,
         machine: Machine,
         shift: Shift,
