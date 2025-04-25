@@ -359,6 +359,16 @@
           "scale": 2,
           "mappedType": "decimal"
         },
+        "run_time": {
+          "name": "run_time",
+          "type": "numeric",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "60",
+          "mappedType": "decimal"
+        },
         "act_prod_per_hr": {
           "name": "act_prod_per_hr",
           "type": "decimal(5,2)",
