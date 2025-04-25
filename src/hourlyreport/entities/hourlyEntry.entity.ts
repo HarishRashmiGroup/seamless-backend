@@ -48,6 +48,9 @@ export class HourlyEntry {
     @Property({ columnType: 'decimal(5,2)' })
     stdProdPerHr: number;
 
+    @Property({ columnType: 'numeric', default: 60 })
+    runTime: number;
+
     @Property({ columnType: 'decimal(5,2)' })
     actProdPerHr: number;
 
@@ -73,6 +76,7 @@ export class HourlyEntry {
         date,
         machine,
         shift,
+        runTime,
         diaDetails,
         stdProdPerHr,
         actProdPerHr,
@@ -88,6 +92,7 @@ export class HourlyEntry {
         date: string,
         machine: Machine,
         shift: Shift,
+        runTime: number,
         diaDetails: DiaDetailsRO[],
         stdProdPerHr: number,
         actProdPerHr: number,
@@ -103,6 +108,7 @@ export class HourlyEntry {
         this.date = new Date(date);
         this.dateString = date;
         this.shift = shift;
+        this.runTime = runTime;
         this.machine = machine;
         this.diaDetails = diaDetails;
         this.stdProdPerHr = stdProdPerHr;

@@ -59,6 +59,10 @@ export class HourlyReportDto {
     @IsNumber()
     shiftId: number;
 
+    @Transform(({ value }) => Number(value))
+    @IsNumber()
+    runTime: number;
+
     @IsString()
     date: string;
 

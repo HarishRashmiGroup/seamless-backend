@@ -71,6 +71,7 @@ export class ProductionDataRO {
     shiftLetter: string;
     runningMints: number;
     status: boolean;
+    runTime: number;
     stdProdMTPerHr: number;
     actProdMTPerHr: number;
     constructor(entry: HourlyEntry, user: User) {
@@ -88,6 +89,7 @@ export class ProductionDataRO {
         this.breakdownDetails = user.role === UserRole.maintenance ?
             breakDowns.filter((bd) => departments.includes(bd.departmentId)) : breakDowns;
         this.status = true;
+        this.runTime = entry.runTime;
         this.shiftLetter = entry.shift.shift;
         this.actProdPerHr = entry.actProdPerHr;
         this.stdProdPerHr = entry.stdProdPerHr;
